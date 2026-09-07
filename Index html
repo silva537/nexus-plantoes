@@ -1,1 +1,448 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Plantões - Pro 2.6</title>
+    <style>
+        :root {
+            --bg-base: #07090e;
+            --bg-card: #111827;
+            --border: #1f2937;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius-lg: 16px;
+            --radius-sm: 8px;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: var(--bg-base); color: var(--text-main); min-height: 100vh; padding: 16px; }
+        .wrapper { max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        .app-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 4px; }
+        .app-title { font-size: 20px; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .menu-btn { background: none; border: none; color: var(--text-main); font-size: 22px; cursor: pointer; }
+        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--bg-card); border-right: 1px solid var(--border); z-index: 1000; transition: left 0.3s ease; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .sidebar.open { left: 0; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .sidebar-item { padding: 12px; background: #030712; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-main); cursor: pointer; text-align: left; font-size: 14px; }
+        .sidebar-item:hover { border-color: var(--primary); }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 999; display: none; }
+        .overlay.open { display: block; }
+    </style>
+</head>
+<body>
+    <div class="overlay" id="overlayMenu"></div>
+    <div class="sidebar" id="sidebarMenu">
+        <div class="sidebar-header">
+            <span>Menu Nexus</span>
+            <button class="menu-btn" id="btnCloseMenu">✕</button>
+        </div>
+        <button class="sidebar-item" onclick="alert('Estamos trabalhando ainda nessa parte!')">🚀 Funcionalidade Beta</button>
+        <button class="sidebar-item" onclick="alert('Estamos trabalhando ainda nessa parte!')">📊 Relatórios Avançados</button>
+        <button class="sidebar-item" onclick="alert('Estamos trabalhando ainda nessa parte!')">⚙️ Configurações Extra</button>
+        <div style="margin-top: auto; font-size: 11px; text-align: center; color: var(--text-muted);">
+            Desenvolvido por Silva
+        </div>
+    </div>
 
+    <div class="wrapper">
+        <header class="app-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="menu-btn" id="btnOpenMenu">☰</button>
+                <h1 class="app-title">Nexus Plantões</h1>
+            </div>
+            <span style="font-size: 11px; background: rgba(16, 185, 129, 0.15); color: var(--success); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 600;">Pro 2.6</span>
+        </header>
+        <section style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow);">
+            <div style="font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; display: flex; justify-content: space-between;">
+                <span>Novo Registro</span>
+                <span id="statusAutoSave" style="font-size: 10px; color: var(--success);">● Auto-save Ativo</span>
+            </div>
+            <form id="formPlantao">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Data</label>
+                        <input type="date" id="data" required style="width: 100%; background: #030712; border: 1px solid var(--border); border-radius: 8px; padding: 11px; color: var(--text-main);">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Turno</label>
+                        <select id="turno" style="width: 100%; background: #030712; border: 1px solid var(--border); border-radius: 8px; padding: 11px; color: var(--text-main);">
+                            <option value="Manhã">Manhã</option>
+                            <option value="Tarde">Tarde</option>
+                            <option value="Noturno">Noturno</option>
+                            <option value="12x36">12x36</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Início</label>
+                        <input type="time" id="inicio" required style="width: 100%; background: #030712; border: 1px solid var(--border); border-radius: 8px; padding: 11px; color: var(--text-main);">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Fim</label>
+                        <input type="time" id="fim" required style="width: 100%; background: #030712; border: 1px solid var(--border); border-radius: 8px; padding: 11px; color: var(--text-main);">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Sono Prévio (h)</label>
+                        <input type="number" id="sono" step="0.5" min="0" max="24" value="0" style="width: 100%; background: #030712; border: 1px solid var(--border); border-radius: 8px; padding: 11px; color: var(--text-main);">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Valor (R$)</label>
+                        <input type="number" id="valor" step="0.01" placeholder="0.00" required style="width: 100%; background: #030712; border: 1px solid var(--border); border-radius: 8px; padding: 11px; color: var(--text-main);">
+                    </div>
+                    <div style="grid-column: span 2; display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Cobriu folga de (Opcional)</label>
+                        <input type="text" id="folgaDe" placeholder="Nome do colega" style="width: 100%; background: #030712; border: 1px solid var(--border); border-radius: 8px; padding: 11px; color: var(--text-main);">
+                    </div>
+                    <div style="grid-column: span 2; display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px;">
+                        <label style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Observação</label>
+                        <input type="text" id="obs" placeholder="Detalhes ou anotações..." style="width: 100%; background: #030712; border: 1px solid var(--border); border-radius: 8px; padding: 11px; color: var(--text-main);">
+                    </div>
+                </div>
+                <button type="submit" style="width: 100%; border: none; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 700; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: white; cursor: pointer; margin-top: 8px;">Salvar Plantão</button>
+            </form>
+        </section>
+        <section style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow);">
+            <div style="font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+                <span>Visão Geral</span>
+                <select id="filtroMes" style="width: auto; padding: 4px 8px; font-size: 11px; background: #030712; color: var(--text-main); border: 1px solid var(--border); border-radius: 6px;">
+                    <option value="todos">Todos os Meses</option>
+                </select>
+            </div>
+
+            <div style="background: #030712; border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px; color: var(--text-muted);">
+                    <span>Meta: <strong id="lblMeta" style="color: var(--text-main);">R$ 3.000,00</strong></span>
+                    <span id="lblPorcentagemMeta" style="color: var(--success); font-weight: bold;">0%</span>
+                </div>
+                <div style="width: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden;">
+                    <div id="barraProgresso" style="height: 100%; background: var(--success); width: 0%;"></div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
+                    <button type="button" id="btnAlterarMeta" style="background: none; border: none; color: var(--primary); font-size: 11px; cursor: pointer; font-weight: 600;">⚙️ Ajustar Meta</button>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;">
+                <div style="background: #030712; border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-size: 10px; color: var(--text-muted); display: block;">Previsão Cash</span>
+                        <strong id="lblStatusPagamento" style="font-size: 12px; color: var(--warning);">Calculando...</strong>
+                    </div>
+                    <button type="button" id="btnAlterarPagamento" style="background: #1f2937; color: var(--text-main); border: 1px solid var(--border); font-size: 10px; padding: 4px 8px; border-radius: 6px; cursor: pointer;">📅 Dia</button>
+                </div>
+                <div id="cardAlertaEscala" style="background: #030712; border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="font-size: 10px; color: var(--text-muted); display: block;">Fechamento RH</span>
+                        <strong id="lblStatusEscala" style="font-size: 12px; color: var(--success);">Calculando...</strong>
+                    </div>
+                    <button type="button" id="btnAlterarEscala" style="background: #1f2937; color: var(--text-main); border: 1px solid var(--border); font-size: 10px; padding: 4px 8px; border-radius: 6px; cursor: pointer;">⚙️ Limite</button>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; text-align: center;">
+                <div style="background: #030712; border: 1px solid var(--border); padding: 10px; border-radius: 8px;">
+                    <span style="font-size: 10px; color: var(--text-muted); display: block;">Total Plantões</span>
+                    <strong id="statQtd" style="font-size: 13px; color: var(--text-main);">0</strong>
+                </div>
+                <div style="background: #030712; border: 1px solid var(--border); padding: 10px; border-radius: 8px;">
+                    <span style="font-size: 10px; color: var(--text-muted); display: block;">Próprios / Coberturas</span>
+                    <strong id="statTipos" style="font-size: 13px; color: var(--accent);">0 / 0</strong>
+                </div>
+                <div style="background: #030712; border: 1px solid var(--border); padding: 10px; border-radius: 8px;">
+                    <span style="font-size: 10px; color: var(--text-muted); display: block;">Média por Plantão</span>
+                    <strong id="statMediaValor" style="font-size: 13px; color: var(--success);">R$ 0,00</strong>
+                </div>
+                <div style="background: #030712; border: 1px solid var(--border); padding: 10px; border-radius: 8px;">
+                    <span style="font-size: 10px; color: var(--text-muted); display: block;">Média de Sono</span>
+                    <strong id="statMediaSono" style="font-size: 13px; color: var(--warning);">0h</strong>
+                </div>
+                <div id="cardAlertaSemanal" style="background: #030712; border: 1px solid var(--border); padding: 10px; border-radius: 8px; grid-column: span 2;">
+                    <span style="font-size: 10px; color: var(--text-muted); display: block;">Carga Horária Semanal Atual</span>
+                    <strong id="lblCargaSemanal" style="font-size: 13px; color: var(--success);">0h (Saudável)</strong>
+                </div>
+            </div>
+
+            <button type="button" id="btnFecharFolha" style="width: 100%; border: none; border-radius: 8px; padding: 12px; font-size: 14px; font-weight: 700; background: var(--success); color: white; cursor: pointer; margin-bottom: 14px;">✅ Recebi / Fechar Folha Atual</button>
+
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <th style="text-align: left; padding: 8px; color: var(--text-muted);">Detalhes</th>
+                            <th style="text-align: left; padding: 8px; color: var(--text-muted);">Turno / Horário</th>
+                            <th style="text-align: left; padding: 8px; color: var(--text-muted);">Valor</th>
+                            <th style="text-align: right; padding: 8px; color: var(--text-muted);">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaCorpo"></tbody>
+                </table>
+            </div>
+
+            <div style="text-align: right; font-size: 15px; font-weight: bold; color: var(--success); margin-top: 12px; margin-bottom: 14px;">
+                Total Filtrado: <span id="lblTotalFiltrado">R$ 0,00</span>
+            </div>
+            <div style="background: #030712; border: 1px solid var(--border); padding: 12px; border-radius: 8px; margin-bottom: 14px;">
+                <span style="font-size: 11px; font-weight: bold; color: var(--accent); display: block; margin-bottom: 8px;">📊 Ferramentas</span>
+                <button type="button" id="btnExcel" style="width: 100%; background: #1f2937; color: var(--text-main); border: 1px solid var(--border); font-size: 11px; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">📊 Exportar Dados para Excel (CSV)</button>
+            </div>
+        </section>
+
+        <section style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; box-shadow: var(--shadow);">
+            <div style="font-size: 14px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 16px;">Folhas Anteriores Arquivadas</div>
+            <div id="containerArquivadas">
+                <p style="color: var(--text-muted); font-size: 12px;">Nenhuma folha fechada anteriormente.</p>
+            </div>
+            <div style="margin-top: 20px; text-align: center; font-size: 11px; color: var(--text-muted);">
+                Desenvolvido por Silva
+            </div>
+        </section>
+    </div>
+    <script>
+        let cachePlantoes = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const campoData = document.getElementById("data");
+            if (campoData) campoData.valueAsDate = new Date();
+
+            const menu = document.getElementById("sidebarMenu");
+            const overlay = document.getElementById("overlayMenu");
+            document.getElementById("btnOpenMenu").addEventListener("click", () => { menu.classList.add("open"); overlay.classList.add("open"); });
+            document.getElementById("btnCloseMenu").addEventListener("click", () => { menu.classList.remove("open"); overlay.classList.remove("open"); });
+            overlay.addEventListener("click", () => { menu.classList.remove("open"); overlay.classList.remove("open"); });
+
+            document.getElementById("formPlantao").addEventListener("submit", salvarPlantao);
+            document.getElementById("btnFecharFolha").addEventListener("click", fecharFolha);
+            document.getElementById("btnAlterarMeta").addEventListener("click", alterarMeta);
+            document.getElementById("btnAlterarPagamento").addEventListener("click", alterarDiaPagamento);
+            document.getElementById("btnAlterarEscala").addEventListener("click", alterarDiaEscala);
+            document.getElementById("filtroMes").addEventListener("change", renderizarTabelaEStats);
+
+            document.getElementById("btnExcel").addEventListener("click", exportarExcel);
+
+            carregarDadosLocal();
+        });
+
+        function obterMeta() { return parseFloat(localStorage.getItem("meta_mensal") || "3000"); }
+        function obterDiaPagamento() { return parseInt(localStorage.getItem("dia_pagamento") || "5"); }
+        function obterDiaEscala() { return parseInt(localStorage.getItem("dia_escala") || "25"); }
+
+        function alterarMeta() {
+            let atual = obterMeta();
+            let nova = prompt("Novo valor da meta mensal (R$):", atual);
+            if (nova !== null && nova.trim() !== "") {
+                let conv = parseFloat(nova.replace(",", "."));
+                if (!isNaN(conv)) { localStorage.setItem("meta_mensal", conv); atualizarPainelMeta(cachePlantoes); dispararSalvamentoGeral(); }
+                else alert("Valor inválido.");
+            }
+        }
+
+        function alterarDiaPagamento() {
+            let atual = obterDiaPagamento();
+            let novo = prompt("Dia do mês que você recebe (1 a 31):", atual);
+            if (novo !== null && novo.trim() !== "") {
+                let conv = parseInt(novo);
+                if (!isNaN(conv) && conv >= 1 && conv <= 31) { localStorage.setItem("dia_pagamento", conv); atualizarPainelPagamento(); dispararSalvamentoGeral(); }
+                else alert("Dia inválido.");
+            }
+        }
+
+        function alterarDiaEscala() {
+            let atual = obterDiaEscala();
+            let novo = prompt("Dia limite de fechamento da escala do RH (1 a 31):", atual);
+            if (novo !== null && novo.trim() !== "") {
+                let conv = parseInt(novo);
+                if (!isNaN(conv) && conv >= 1 && conv <= 31) { localStorage.setItem("dia_escala", conv); atualizarPainelEscala(); dispararSalvamentoGeral(); }
+                else alert("Dia inválido.");
+            }
+        }
+
+        function atualizarPainelPagamento() {
+            let diaPg = obterDiaPagamento();
+            let hoje = new Date();
+            let dt = new Date(hoje.getFullYear(), hoje.getMonth(), diaPg);
+            if (hoje > dt) dt = new Date(hoje.getFullYear(), hoje.getMonth() + 1, diaPg);
+            let diff = Math.ceil((dt - hoje) / (1000 * 60 * 60 * 24));
+            let lbl = document.getElementById("lblStatusPagamento");
+            if(lbl) lbl.textContent = diff === 0 ? "É hoje! (Cash)" : diff === 1 ? "Falta 1 dia" : `Faltam ${diff} dias`;
+        }
+
+        function atualizarPainelEscala() {
+            let diaEsc = obterDiaEscala();
+            let hoje = new Date();
+            let dt = new Date(hoje.getFullYear(), hoje.getMonth(), diaEsc);
+            if (hoje > dt) dt = new Date(hoje.getFullYear(), hoje.getMonth() + 1, diaEsc);
+            let diff = Math.ceil((dt - hoje) / (1000 * 60 * 60 * 24));
+            let lbl = document.getElementById("lblStatusEscala");
+            let card = document.getElementById("cardAlertaEscala");
+            if (!lbl || !card) return;
+            if (diff <= 1) { lbl.textContent = diff === 0 ? "Vence HOJE!" : "Falta 1 dia!"; lbl.style.color = "var(--danger)"; card.style.borderColor = "var(--danger)"; }
+            else if (diff <= 3) { lbl.textContent = `Faltam ${diff} dias!`; lbl.style.color = "var(--warning)"; card.style.borderColor = "var(--warning)"; }
+            else { lbl.textContent = `Faltam ${diff} dias`; lbl.style.color = "var(--success)"; card.style.borderColor = "var(--border)"; }
+        }
+
+        function carregarDadosLocal() {
+            try {
+                cachePlantoes = JSON.parse(localStorage.getItem("plantoes_atuais") || "[]");
+                atualizarFiltrosMes(cachePlantoes);
+                renderizarTabelaEStats();
+            } catch (e) { cachePlantoes = []; }
+            carregarArquivadas();
+            atualizarPainelPagamento();
+            atualizarPainelEscala();
+        }
+
+        function dispararSalvamentoGeral() {
+            localStorage.setItem("plantoes_atuais", JSON.stringify(cachePlantoes));
+            document.getElementById("statusAutoSave").textContent = "● Sincronizado";
+            document.getElementById("statusAutoSave").style.color = "var(--success)";
+        }
+
+        function salvarPlantao(e) {
+            e.preventDefault();
+            const novo = {
+                id: Date.now(),
+                data: document.getElementById("data").value,
+                turno: document.getElementById("turno").value,
+                inicio: document.getElementById("inicio").value,
+                fim: document.getElementById("fim").value,
+                sono: parseFloat(document.getElementById("sono").value) || 0,
+                valor: parseFloat(document.getElementById("valor").value) || 0,
+                folgaDe: document.getElementById("folgaDe").value.trim(),
+                obs: document.getElementById("obs").value.trim()
+            };
+            cachePlantoes.push(novo);
+            document.getElementById("formPlantao").reset();
+            document.getElementById("data").valueAsDate = new Date();
+            atualizarFiltrosMes(cachePlantoes);
+            renderizarTabelaEStats();
+            dispararSalvamentoGeral();
+        }
+
+        function deletarPlantao(id) {
+            if (confirm("Excluir este plantão?")) {
+                cachePlantoes = cachePlantoes.filter(p => p.id !== id);
+                atualizarFiltrosMes(cachePlantoes);
+                renderizarTabelaEStats();
+                dispararSalvamentoGeral();
+            }
+        }
+        window.deletarPlantao = deletarPlantao;
+
+        function atualizarFiltrosMes(plantoes) {
+            const select = document.getElementById("filtroMes");
+            if (!select) return;
+            const selAntes = select.value;
+            const meses = [...new Set(plantoes.map(p => p.data.slice(0, 7)))].sort().reverse();
+            select.innerHTML = '<option value="todos">Todos os Meses</option>';
+            meses.forEach(m => {
+                const [ano, mes] = m.split("-");
+                const nome = new Date(ano, mes - 1).toLocaleString("pt-BR", { month: "long", year: "numeric" });
+                const opt = document.createElement("option");
+                opt.value = m;
+                opt.textContent = nome.charAt(0).toUpperCase() + nome.slice(1);
+                select.appendChild(opt);
+            });
+            select.value = meses.includes(selAntes) || selAntes === "todos" ? selAntes : "todos";
+        }
+
+        function renderizarTabelaEStats() {
+            const filtro = document.getElementById("filtroMes").value;
+            const tbody = document.getElementById("tabelaCorpo");
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            let filtrados = cachePlantoes.filter(p => filtro === "todos" || p.data.startsWith(filtro));
+            let somaTotal = 0, proprios = 0, coberturas = 0, somaSono = 0;
+
+            filtrados.forEach(p => {
+                somaTotal += p.valor;
+                somaSono += (p.sono || 0);
+                if (p.folgaDe) coberturas++; else proprios++;
+
+                const tr = document.createElement("tr");
+                tr.style.borderBottom = "1px solid var(--border)";
+                const dataFmt = p.data.split("-").reverse().join("/");
+                const tipoInfo = p.folgaDe ? `<br><span style="color:var(--warning)">Cobriu: ${p.folgaDe}</span>` : `<br><span style="color:var(--success)">Próprio</span>`;
+                const sonoInfo = p.sono ? `<br><span style="color:var(--text-muted)">🛌 ${p.sono}h sono</span>` : "";
+                const obsInfo = p.obs ? `<br><span style="color:var(--text-muted)">Obs: ${p.obs}</span>` : "";
+
+                tr.innerHTML = `
+                    <td style="padding: 10px 8px;">${dataFmt}${tipoInfo}${sonoInfo}${obsInfo}</td>
+                    <td style="padding: 10px 8px;">${p.turno}<br><span style="color:var(--text-muted)">${p.inicio} - ${p.fim}</span></td>
+                    <td style="padding: 10px 8px; font-weight: bold;">R$ ${p.valor.toFixed(2)}</td>
+                    <td style="padding: 10px 8px; text-align: right;"><button type="button" onclick="deletarPlantao(${p.id})" style="background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer;">Excluir</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById("lblTotalFiltrado").textContent = `R$ ${somaTotal.toFixed(2)}`;
+            document.getElementById("statQtd").textContent = filtrados.length;
+            document.getElementById("statTipos").textContent = `${proprios} / ${coberturas}`;
+            document.getElementById("statMediaValor").textContent = filtrados.length ? `R$ ${(somaTotal / filtrados.length).toFixed(2)}` : "R$ 0,00";
+            document.getElementById("statMediaSono").textContent = filtrados.length ? `${(somaSono / filtrados.length).toFixed(1)}h` : "0h";
+
+            atualizarPainelMeta(cachePlantoes);
+        }
+
+        function atualizarPainelMeta(plantoes) {
+            let totalGeral = plantoes.reduce((acc, p) => acc + p.valor, 0);
+            let meta = obterMeta();
+            let progresso = meta > 0 ? Math.min((totalGeral / meta) * 100, 100) : 0;
+            document.getElementById("lblMeta").textContent = `R$ ${meta.toFixed(2)}`;
+            document.getElementById("lblPorcentagemMeta").textContent = `${progresso.toFixed(0)}%`;
+            document.getElementById("barraProgresso").style.width = `${progresso}%`;
+        }
+
+        function fecharFolha() {
+            if (cachePlantoes.length === 0) { alert("Sem plantões para fechar."); return; }
+            if (confirm("Fechar a folha atual e arquivar os plantões?")) {
+                let total = cachePlantoes.reduce((acc, p) => acc + p.valor, 0);
+                let historico = JSON.parse(localStorage.getItem("folhas_arquivadas") || "[]");
+                historico.unshift({ dataFechamento: new Date().toLocaleDateString("pt-BR"), total, itens: [...cachePlantoes] });
+                localStorage.setItem("folhas_arquivadas", JSON.stringify(historico));
+                localStorage.removeItem("plantoes_atuais");
+                cachePlantoes = [];
+                carregarDadosLocal();
+                dispararSalvamentoGeral();
+                alert("Folha fechada com sucesso!");
+            }
+        }
+
+        function carregarArquivadas() {
+            const container = document.getElementById("containerArquivadas");
+            if (!container) return;
+            let historico = JSON.parse(localStorage.getItem("folhas_arquivadas") || "[]");
+            if (historico.length === 0) { container.innerHTML = `<p style="color: var(--text-muted); font-size: 12px;">Nenhuma folha fechada anteriormente.</p>`; return; }
+            container.innerHTML = "";
+            historico.forEach(f => {
+                let div = document.createElement("div");
+                div.style.background = "#030712"; div.style.border = "1px solid var(--border)"; div.style.padding = "10px"; div.style.borderRadius = "8px"; div.style.marginTop = "6px"; div.style.fontSize = "12px";
+                let itens = f.itens.map(p => `<li>${p.data.split("-").reverse().join("/")} (${p.turno}) - R$ ${p.valor.toFixed(2)}</li>`).join("");
+                div.innerHTML = `<strong>Fechado em: ${f.dataFechamento}</strong> | <span style="color:var(--success)">Total: R$ ${f.total.toFixed(2)}</span><ul style="margin: 4px 0 0 16px; color: var(--text-muted);">${itens}</ul>`;
+                container.appendChild(div);
+            });
+        }
+
+        function exportarExcel() {
+            if (cachePlantoes.length === 0) { alert("Sem dados para exportar."); return; }
+            let csv = "Data;Turno;Inicio;Fim;Sono;Valor;FolgaDe;Obs\r\n";
+            cachePlantoes.forEach(p => { csv += `${p.data};${p.turno};${p.inicio};${p.fim};${p.sono || 0};${p.valor};${p.folgaDe || ""};${p.obs || ""}\r\n`; });
+            
+            const nomeCsv = `nexus_${new Date().toISOString().slice(0, 10)}.csv`;
+            const dataUri = "data:text/csv;charset=utf-8," + encodeURIComponent(csv);
+            const a = document.createElement('a');
+            a.href = dataUri;
+            a.download = nomeCsv;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    </script>
+</body>
+</html>
